@@ -8,7 +8,7 @@ class StatusEnum(str, Enum):
     ACCEPTED = "Accepted"
     DECLINED = "Declined"
 
-class FriendShips(SQLModel, table=True):
+class Friendships(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     requester_id: int = Field(foreign_key="users.id")
     receiver_id: int = Field(foreign_key="users.id")
