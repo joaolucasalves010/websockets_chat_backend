@@ -19,7 +19,7 @@ from ..models.user import *
 
 from pwdlib import PasswordHash
 
-router = APIRouter()
+router = APIRouter(tags=["users"])
 
 password_hash = PasswordHash.recommended()
 
