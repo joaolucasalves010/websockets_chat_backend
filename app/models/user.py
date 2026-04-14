@@ -10,14 +10,6 @@ class User(SQLModel):
     phone: str = Field(min_length=9, max_length=11)
     password: str = Field(min_length=6, max_length=72)
 
-    @field_validator("phone")
-    @classmethod
-    def validate_phone(cls, v):
-        cleaned_v = re.sub(r"[\s\-\(\)]", "", v)
-        if not cleaned_v.is_digit():
-            raise ValueError("Telefone inválido.")
-        return v
-
 
 class UserDb(SQLModel, table=True):
     id: int | None= Field(default=None, primary_key=True)
@@ -38,11 +30,3 @@ class UserUpdate(SQLModel):
     username: str | None = Field(default=None, min_length=8, max_length=20)
     phone: str | None = Field(default=None, min_length=9, max_length=11)
     password: str | None = Field(default=None, min_length=6, max_length=72)
-
-    @field_validator("phone")
-    @classmethod
-    def validate_phone(cls, v):
-        cleaned_v = re.sub(r"[\s\-\(\)]", "", v)
-        if not cleaned_v.is_digit():
-            raise ValueError("Telefone inválido.")
-        return v
