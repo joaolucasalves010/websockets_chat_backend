@@ -16,3 +16,8 @@ class Friendship(SQLModel, table=True):
     is_deleted: bool = Field(default=False)
 
     __tablename__ = "friendships"
+
+class FriendshipPublic(SQLModel):
+    id: int | None = Field(default=None, primary_key=True)
+    requester_id: int = Field(foreign_key="users.id")
+    receiver_id: int = Field(foreign_key="users.id")
