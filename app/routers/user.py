@@ -101,9 +101,6 @@ def read_users_me(user: Annotated[UserDb, Depends(get_current_user)]):
 
 @router.delete("/users/")
 def delete_user(current_user: Annotated[UserDb, Depends(get_current_user)], session: SessionDep):
-    if not current_user:
-        raise credentials_exception
-
     current_user.is_deleted == True
     session.add(current_user)
     session.commit()
