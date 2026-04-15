@@ -128,4 +128,3 @@ def update_user(current_user: Annotated[UserDb, Depends(get_current_user)], user
     session.refresh(current_user)
 
     return JSONResponse(content={"message": "Usuário atualizado com sucesso"}, status_code=200)
-    
