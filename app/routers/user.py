@@ -128,3 +128,10 @@ def update_user(current_user: Annotated[UserDb, Depends(get_current_user)], user
     session.refresh(current_user)
 
     return JSONResponse(content={"message": "Usuário atualizado com sucesso"}, status_code=200)
+
+@router.get("/logout")
+def logout():
+    response = JSONResponse(content={"message": "Usuário deslogado com sucesso"})
+    response.delete_cookie(key="access_token", secure=False, httponly=True, path="/")
+    
+    return response
