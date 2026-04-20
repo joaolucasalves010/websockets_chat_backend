@@ -35,8 +35,8 @@ def add_friend(current_user: Annotated[UserDb, Depends(get_current_user)], phone
 
     return JSONResponse(content={"message": "Pedido de amizade enviado com sucesso!"}, status_code=200)
 
-@router.get("/friendships")
-def list_friendships(
+@router.get("/friends", response_model=list[UserPublic])
+def list_friends(
     current_user: Annotated[UserDb, Depends(get_current_user)],
     session: SessionDep
 ):
@@ -51,7 +51,17 @@ def list_friendships(
         )
     )).all()
 
-    return friendships
+    friends = []
+
+    for friendship in friendships:
+        if friendship.requester_id != current_user.id:
+            friend = session.exec(select(UserDb).where(UserDb.id == friendship.requester_id)).first()
+            friends.append(friend)
+        elif friendship.receiver_id != current_user.id:
+            friend = session.exec(select(UserDb).where(UserDb.id == friendship.receiver_id)).first()
+            friends.append(friend)
+
+    return friends
 
 
 @router.delete("/delete_friendship/{user_id}")
