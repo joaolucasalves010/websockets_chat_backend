@@ -18,7 +18,8 @@ class UserDb(SQLModel, table=True):
     hashed_password: str
     is_deleted: bool = Field(default=False)
     created_at: str
-
+    image_url: str | None = Field(default=None)
+ 
     __tablename__ = "users"
 
 class UserPublic(SQLModel):

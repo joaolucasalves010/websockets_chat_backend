@@ -51,7 +51,7 @@ def authenticate_user(phone: str, password: str, session: SessionDep):
 def create_access_token(user: UserDb):
     to_encode = {"id": user.id, "phone": user.phone, "username": user.username}
     to_encode.update({"exp": datetime.now(timezone.utc) + timedelta(minutes=EXPIRE_ACCESS_TOKEN)})
-    return jwt.encode(user.model_dump(), SECRET_KEY, algorithm=ALGORITHM)
+    return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 def verify_existing_user(phone: str, session: SessionDep):
     user = session.exec(select(UserDb).where(UserDb.phone == phone)).first()
