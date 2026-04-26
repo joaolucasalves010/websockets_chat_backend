@@ -19,7 +19,7 @@ IMAGE_DIR = os.path.join(ROOT_PATH, "uploads")
 
 ALLOWED_EXTENSIONS = {".jpeg" , ".png", ".jpg"}
 
-router = APIRouter()
+router = APIRouter(tags=["user avatar"])
 
 @router.post("/users/avatar")
 async def upload_avatar(current_user: Annotated[UserDb, Depends(get_current_user)], image: Annotated[UploadFile, File()], session: SessionDep):
@@ -41,3 +41,15 @@ async def upload_avatar(current_user: Annotated[UserDb, Depends(get_current_user
     session.commit()
     session.refresh(current_user)
     return JSONResponse(content={"message": "Foto adicionada com sucesso."}, status_code=200)
+
+@router.delete("/users/avatar")
+def delete_avatar(current_user: Annotated[UserDb, Depends(get_current_user)], session: SessionDep):
+    if current_user.image_url is None:
+        return HTTPException(detail="Este usuário não possui imagem", status_code=404)
+    
+    os.remove(os.path.join(ROOT_PATH, current_user.image_url))
+    current_user.image_url = None
+    session.commit()
+    session.refresh(current_user)
+    
+    return JSONResponse(content={"message": "Foto de usuário deletada com sucesso."}, status_code=200)
