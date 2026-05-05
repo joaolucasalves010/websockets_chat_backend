@@ -27,6 +27,26 @@ def add_friend(current_user: Annotated[UserDb, Depends(get_current_user)], phone
     if receiver.id == current_user.id:
         raise HTTPException(detail="Você não pode enviar um pedido de amizade para si mesmo.", status_code=400)
    
+    existing_friendship = session.exec(select(Friendship).where(
+        and_(
+            Friendship.status == "Accepted",
+            Friendship.is_deleted == False
+        ),
+        or_(
+            and_(
+                Friendship.requester_id == current_user.id,
+                Friendship.receiver_id == receiver.id
+            ),
+            and_(
+                Friendship.requester_id == receiver.id,
+                Friendship.receiver_id == current_user.id
+            )
+        )
+    )).first()
+
+    if existing_friendship:
+        raise HTTPException(detail="Você já é amigo desse usuário.", status_code=400)
+
     friend_request = Friendship(requester_id=current_user.id, receiver_id=receiver.id)
 
     session.add(friend_request)

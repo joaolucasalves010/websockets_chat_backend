@@ -26,6 +26,7 @@ class UserPublic(SQLModel):
     id: int | None= Field(default=None, primary_key=True)
     username: str = Field(min_length=8, max_length=20)
     phone: str = Field(min_length=9, max_length=11)
+    image_url: str | None = Field(default=None)
 
 class UserUpdate(SQLModel):
     username: str | None = Field(default=None, min_length=8, max_length=20)
