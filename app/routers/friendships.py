@@ -55,6 +55,28 @@ def add_friend(current_user: Annotated[UserDb, Depends(get_current_user)], phone
 
     return JSONResponse(content={"message": "Pedido de amizade enviado com sucesso!"}, status_code=200)
 
+@router.get("/friendship_requests", response_model=list[UserPublic])
+async def list_friendship_requests(
+    current_user: Annotated[UserDb, Depends(get_current_user)],
+    session: SessionDep,
+):
+    friendships_requests = session.exec(select(Friendship).where(
+        and_(
+            Friendship.status == "Pending",
+            Friendship.is_deleted == False
+        ),
+        or_(
+            Friendship.receiver_id == current_user.id
+        )
+    )).all()
+
+    requesters = []
+    for friendship_request in friendships_requests:
+        requester = session.exec(select(UserDb).where(UserDb.id == friendship_request.requester_id)).first()
+        requesters.append(requester)
+
+    return requesters
+
 @router.get("/friends", response_model=list[UserPublic])
 def list_friends(
     current_user: Annotated[UserDb, Depends(get_current_user)],
@@ -108,7 +130,7 @@ def delete_friendship(current_user: Annotated[UserDb, Depends(get_current_user)]
     if friendship.receiver_id != current_user.id and friendship.requester_id != current_user.id:
         raise HTTPException(detail="Você não tem permissão para fazer essa chamada.", status_code=401)
 
-    if not friendship or friendship.is_deleted:
+    if not friendship or friendship.is_deleted or friendship.status == "Declined":
         raise HTTPException(detail="Amizade não encontrada!", status_code=404)
     
     friendship.is_deleted = True
@@ -119,8 +141,8 @@ def delete_friendship(current_user: Annotated[UserDb, Depends(get_current_user)]
 
     return JSONResponse(content={"message": "Amizade deletada com sucesso!"}, status_code=200)
 
-@router.post("/accept_friendhsip/{user_id}")
-def accept_friendship(current_user: Annotated[UserDb, Depends(get_current_user)], user_id: Annotated[int, Path()], session: SessionDep):
+@router.post("/accept_friendship/{user_id}")
+def accept_friendship_request(current_user: Annotated[UserDb, Depends(get_current_user)], user_id: Annotated[int, Path()], session: SessionDep):
     friendship_request = session.exec(select(Friendship).where(Friendship.receiver_id == current_user.id, Friendship.requester_id == user_id, Friendship.status == "Pending", Friendship.is_deleted == False)).one_or_none()
 
     if not friendship_request:
@@ -131,3 +153,16 @@ def accept_friendship(current_user: Annotated[UserDb, Depends(get_current_user)]
     session.refresh(friendship_request)
 
     return JSONResponse(content={"message": "Pedido de amizade aceito."}, status_code=200)
+
+@router.post("/decline_friendship/{requester_id}")
+def decline_friendship_request(current_user: Annotated[UserDb, Depends(get_current_user)], requester_id: Annotated[int, Path()], session: SessionDep):
+    
+    friendship_request = session.exec(select(Friendship).where(Friendship.requester_id == requester_id, Friendship.receiver_id == current_user.id, Friendship.is_deleted == False, Friendship.status == "Pending")).one_or_none()
+
+    if not friendship_request:
+        raise HTTPException(detail="Pedido de amizade não encontrado")
+    
+    friendship_request.status = "Declined"
+
+    session.commit()
+    session.refresh(friendship_request)
